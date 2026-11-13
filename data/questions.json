@@ -1,0 +1,67 @@
+[
+  {
+    "id": "q-reading-habit",
+    "title": "如何建立一套能長期維持的閱讀習慣？",
+    "detail": "工作很忙，但希望每天保留一點時間閱讀。有哪些簡單、容易開始的方法？",
+    "topic": "學習",
+    "status": "answered",
+    "author": "小安",
+    "createdAt": "2026-11-13T16:00:00.000Z",
+    "views": 214,
+    "answers": [
+      {
+        "id": "a-reading-1",
+        "content": "先從每天十分鐘開始，把閱讀安排在固定的小段時間，比一開始要求自己讀很多更容易持續。",
+        "author": "閱讀者",
+        "createdAt": "2026-11-13T17:00:00.000Z"
+      }
+    ]
+  },
+  {
+    "id": "q-remote-focus",
+    "title": "遠端工作時，大家怎麼安排專注時間？",
+    "detail": "在家工作常常被訊息和家務打斷，想知道其他人如何安排一天的工作節奏。",
+    "topic": "工作",
+    "status": "solved",
+    "author": "Mina",
+    "createdAt": "2026-11-13T13:00:00.000Z",
+    "views": 386,
+    "answers": [
+      {
+        "id": "a-remote-1",
+        "content": "我會把需要深度思考的工作排在早上，並用行事曆標示專注時段，讓同事知道那段時間不即時回覆。",
+        "author": "遠端工作者",
+        "createdAt": "2026-11-13T14:00:00.000Z"
+      }
+    ]
+  },
+  {
+    "id": "q-trip-planning",
+    "title": "第一次規劃國外自由行，應該從哪裡開始？",
+    "detail": "預計安排五天四夜的旅行，對交通、住宿和每日行程的規劃還沒有頭緒。",
+    "topic": "生活",
+    "status": "unanswered",
+    "author": "阿哲",
+    "createdAt": "2026-11-13T09:00:00.000Z",
+    "views": 96,
+    "answers": []
+  },
+  {
+    "id": "q-api-basics",
+    "title": "初學者理解 API 的最佳方式是什麼？",
+    "detail": "剛開始學習程式設計，常看到 API 這個詞，想用容易理解的方式掌握它的概念。",
+    "topic": "科技",
+    "status": "answered",
+    "author": "小林",
+    "createdAt": "2026-11-12T09:00:00.000Z",
+    "views": 178,
+    "answers": [
+      {
+        "id": "a-api-1",
+        "content": "可以先把 API 想成服務櫃台：你依照規定格式提出請求，服務會回傳約定格式的結果。",
+        "author": "工程師",
+        "createdAt": "2026-11-12T10:00:00.000Z"
+      }
+    ]
+  }
+]

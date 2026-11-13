@@ -1,0 +1,10 @@
+{
+  "name": "zhiwen-qa",
+  "version": "0.1.0",
+  "private": true,
+  "description": "知問公開問答社群 MVP",
+  "scripts": {
+    "start": "node server.js",
+    "check": "node --check server.js && node --check app.js"
+  }
+}
