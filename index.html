@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="一個讓人們提出問題、分享知識並找到可靠答案的公開問答社群。"
+    />
+    <title>知問｜公開問答社群</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container header-content">
+        <a class="brand" href="/" aria-label="知問首頁">
+          <span class="brand-mark">知</span>
+          <span>
+            <strong>知問</strong>
+            <small>公開問答社群</small>
+          </span>
+        </a>
+        <nav class="main-nav" aria-label="主要導覽">
+          <a class="active" href="#questions">瀏覽問題</a>
+          <a href="#topics">主題</a>
+          <a href="#about">關於知問</a>
+        </nav>
+        <div class="account-actions">
+          <span id="current-user" class="current-user" hidden></span>
+          <button class="button button-outline" id="login-button" type="button">登入</button>
+          <button class="button button-primary header-ask" type="button" data-open-ask>
+            提出問題
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="container hero-content">
+          <p class="eyebrow">把問題說清楚，讓答案被看見</p>
+          <h1>每個問題，都值得一個好答案。</h1>
+          <p class="hero-copy">
+            從生活疑問到專業知識，在知問找到願意分享經驗的人，也留下未來能幫助別人的答案。
+          </p>
+          <form class="search-form" id="search-form" role="search">
+            <label class="sr-only" for="search-input">搜尋問題</label>
+            <input
+              id="search-input"
+              type="search"
+              placeholder="搜尋你想知道的問題……"
+              autocomplete="off"
+            />
+            <button class="button button-primary" type="submit">搜尋</button>
+          </form>
+          <div class="popular-searches" aria-label="熱門搜尋">
+            <span>熱門：</span>
+            <button type="button" data-search="學習">學習</button>
+            <button type="button" data-search="工作">工作</button>
+            <button type="button" data-search="生活">生活</button>
+            <button type="button" data-search="程式設計">程式設計</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="question-section container" id="questions">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">社群正在討論</p>
+            <h2>最新問題</h2>
+          </div>
+          <button class="button button-outline" type="button" data-open-ask>提出新問題</button>
+        </div>
+
+        <div class="content-layout">
+          <aside class="filters" aria-label="問題篩選">
+            <div class="filter-group">
+              <h3>問題狀態</h3>
+              <label><input type="radio" name="status" value="all" checked /> 全部問題</label>
+              <label><input type="radio" name="status" value="unanswered" /> 尚未回答</label>
+              <label><input type="radio" name="status" value="answered" /> 已有回答</label>
+              <label><input type="radio" name="status" value="solved" /> 已解決</label>
+            </div>
+            <div class="filter-group" id="topics">
+              <h3>問題領域</h3>
+              <label><input type="radio" name="topic" value="all" checked /> 全部領域</label>
+              <label><input type="radio" name="topic" value="生活" /> 生活</label>
+              <label><input type="radio" name="topic" value="學習" /> 學習</label>
+              <label><input type="radio" name="topic" value="工作" /> 工作</label>
+              <label><input type="radio" name="topic" value="科技" /> 科技</label>
+            </div>
+          </aside>
+
+          <div class="questions-column">
+            <div class="list-toolbar">
+              <span id="result-count" aria-live="polite">顯示 4 個問題</span>
+              <label>
+                <span class="sr-only">排序方式</span>
+                <select id="sort-select">
+                  <option value="recent">最新提問</option>
+                  <option value="active">最近活躍</option>
+                  <option value="answers">回答最多</option>
+                </select>
+              </label>
+            </div>
+            <div id="question-list" class="question-list"></div>
+            <p class="empty-state" id="empty-state" hidden>找不到符合條件的問題，試試其他關鍵字或篩選條件。</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="about-section" id="about">
+        <div class="container about-grid">
+          <div>
+            <p class="eyebrow">一起讓知識流動</p>
+            <h2>你知道的，可能正是別人正在找的。</h2>
+          </div>
+          <p>
+            知問鼓勵清楚提問、真誠回答，並讓每個答案都能被後來的人搜尋與使用。無論你是來找答案，還是想分享經驗，都歡迎加入。
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <div class="modal-backdrop" id="ask-modal" hidden>
+      <section class="ask-modal" role="dialog" aria-modal="true" aria-labelledby="ask-title">
+        <button class="modal-close" type="button" aria-label="關閉" data-close-ask>×</button>
+        <p class="eyebrow">提出一個好問題</p>
+        <h2 id="ask-title">你想知道什麼？</h2>
+        <form id="ask-form">
+          <label for="question-title">問題標題</label>
+          <input id="question-title" name="title" required placeholder="用一句話說明你的問題" />
+          <label for="question-topic">問題領域</label>
+          <select id="question-topic" name="topic">
+            <option>生活</option>
+            <option>學習</option>
+            <option>工作</option>
+            <option>科技</option>
+          </select>
+          <label for="question-detail">補充說明</label>
+          <textarea id="question-detail" name="detail" rows="4" placeholder="提供更多背景，讓大家更容易回答"></textarea>
+          <button class="button button-primary" type="submit">發布問題</button>
+        </form>
+        <p class="form-message" id="form-message" hidden></p>
+      </section>
+    </div>
+
+    <div class="modal-backdrop" id="login-modal" hidden>
+      <section class="ask-modal" role="dialog" aria-modal="true" aria-labelledby="login-title">
+        <button class="modal-close" type="button" aria-label="關閉" data-close-login>×</button>
+        <p class="eyebrow">加入知問</p>
+        <h2 id="login-title">登入後參與討論</h2>
+        <form id="login-form">
+          <label for="login-name">顯示名稱</label>
+          <input id="login-name" name="name" required placeholder="例如：小明" />
+          <label for="login-email">Email</label>
+          <input id="login-email" name="email" type="email" required placeholder="you@example.com" />
+          <button class="button button-primary" type="submit">登入</button>
+        </form>
+        <p class="form-message" id="login-message" hidden></p>
+      </section>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
