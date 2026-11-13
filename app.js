@@ -1,5 +1,9 @@
 let questions = [];
 let currentUser = null;
+const isStaticSite =
+  window.location.hostname.endsWith("github.io") || window.location.protocol === "file:";
+const staticQuestionsKey = "zhiwen-questions";
+const staticUserKey = "zhiwen-user";
 
 const questionList = document.querySelector("#question-list");
 const emptyState = document.querySelector("#empty-state");
@@ -10,13 +14,123 @@ const askModal = document.querySelector("#ask-modal");
 const loginModal = document.querySelector("#login-modal");
 
 async function request(path, options = {}) {
-  const response = await fetch(path, {
+  if (isStaticSite) return staticRequest(path, options);
+  const response = await fetch(path + (options.query || ""), {
     headers: { "Content-Type": "application/json", ...(options.headers || {}) },
     ...options,
   });
   const payload = await response.json();
   if (!response.ok) throw new Error(payload.error || "請求失敗，請稍後再試。");
   return payload;
+}
+
+function staticSerializeQuestion(question) {
+  const answers = question.answers || [];
+  return {
+    ...question,
+    excerpt: question.detail,
+    statusLabel: { unanswered: "尚未回答", answered: "已有回答", solved: "已解決" }[question.status],
+    answerCount: answers.length,
+    date: relativeDate(question.createdAt),
+  };
+}
+
+function staticQuestions() {
+  const stored = localStorage.getItem(staticQuestionsKey);
+  return stored ? JSON.parse(stored) : null;
+}
+
+async function staticRequest(path, options = {}) {
+  const method = options.method || "GET";
+  const requestUrl = new URL(path + (options.query || ""), window.location.origin);
+  const pathname = requestUrl.pathname;
+  const storedQuestions = staticQuestions();
+  if (pathname === "/api/me") {
+    return { user: JSON.parse(localStorage.getItem(staticUserKey) || "null") };
+  }
+  if (pathname === "/api/login" && method === "POST") {
+    const body = JSON.parse(options.body || "{}");
+    if (!body.name || !body.email) throw new Error("請填寫姓名與 Email。");
+    const user = { id: crypto.randomUUID(), name: String(body.name).trim(), email: String(body.email).trim() };
+    localStorage.setItem(staticUserKey, JSON.stringify(user));
+    return { user };
+  }
+  if (pathname === "/api/logout" && method === "POST") {
+    localStorage.removeItem(staticUserKey);
+    return { user: null };
+  }
+  if (pathname === "/api/questions" && method === "GET") {
+    const search = (requestUrl.searchParams.get("q") || "").toLowerCase();
+    const status = requestUrl.searchParams.get("status") || "all";
+    const topic = requestUrl.searchParams.get("topic") || "all";
+    const sort = requestUrl.searchParams.get("sort") || "recent";
+    const result = (storedQuestions || []).filter((question) => {
+      const matchesSearch = !search ||
+        `${question.title} ${question.detail} ${question.topic}`.toLowerCase().includes(search);
+      return matchesSearch &&
+        (status === "all" || question.status === status) &&
+        (topic === "all" || question.topic === topic);
+    });
+    result.sort((left, right) => {
+      if (sort === "active") return right.views - left.views;
+      if (sort === "answers") return right.answers.length - left.answers.length;
+      return new Date(right.createdAt) - new Date(left.createdAt);
+    });
+    return { questions: result.map(staticSerializeQuestion) };
+  }
+  if (pathname === "/api/questions" && method === "POST") {
+    const user = JSON.parse(localStorage.getItem(staticUserKey) || "null");
+    if (!user) throw new Error("請先登入後再提問。");
+    const body = JSON.parse(options.body || "{}");
+    if (!body.title || !body.detail) throw new Error("請填寫問題標題與內容。");
+    const question = {
+      id: `q-${crypto.randomUUID()}`,
+      title: String(body.title).trim(),
+      detail: String(body.detail).trim(),
+      topic: String(body.topic || "生活"),
+      status: "unanswered",
+      author: user.name,
+      createdAt: new Date().toISOString(),
+      views: 0,
+      answers: [],
+    };
+    const nextQuestions = [...(storedQuestions || []), question];
+    localStorage.setItem(staticQuestionsKey, JSON.stringify(nextQuestions));
+    return { question: staticSerializeQuestion(question) };
+  }
+  const answerMatch = pathname.match(/^\/api\/questions\/([^/]+)\/answers$/);
+  if (method === "POST" && answerMatch) {
+    const user = JSON.parse(localStorage.getItem(staticUserKey) || "null");
+    if (!user) throw new Error("請先登入後再回答。");
+    const body = JSON.parse(options.body || "{}");
+    if (!body.content || !String(body.content).trim()) throw new Error("請填寫回答內容。");
+    const nextQuestions = (storedQuestions || []).map((question) => {
+      if (question.id !== answerMatch[1]) return question;
+      return {
+        ...question,
+        status: question.status === "unanswered" ? "answered" : question.status,
+        answers: [...question.answers, {
+          id: `a-${crypto.randomUUID()}`,
+          content: String(body.content).trim(),
+          author: user.name,
+          createdAt: new Date().toISOString(),
+        }],
+      };
+    });
+    if (!nextQuestions.some((question) => question.id === answerMatch[1])) {
+      throw new Error("找不到這個問題。");
+    }
+    localStorage.setItem(staticQuestionsKey, JSON.stringify(nextQuestions));
+    return { question: staticSerializeQuestion(nextQuestions.find((question) => question.id === answerMatch[1])) };
+  }
+  throw new Error("找不到 API 路徑。");
+}
+
+function relativeDate(isoDate) {
+  const minutes = Math.max(1, Math.floor((Date.now() - new Date(isoDate).getTime()) / 60000));
+  if (minutes < 60) return `${minutes} 分鐘前`;
+  if (minutes < 1440) return `${Math.floor(minutes / 60)} 小時前`;
+  return `${Math.floor(minutes / 1440)} 天前`;
 }
 
 function showMessage(elementId, message) {
@@ -69,9 +183,16 @@ async function loadQuestions() {
     topic: document.querySelector('input[name="topic"]:checked').value,
     sort: sortSelect.value,
   });
-  const payload = await request(`/api/questions?${params}`);
+  const payload = await request("/api/questions", { query: `?${params}` });
   questions = payload.questions;
   renderQuestions();
+}
+
+async function loadStaticSeed() {
+  if (!isStaticSite || staticQuestions()) return;
+  const response = await fetch("data/questions.json");
+  if (!response.ok) throw new Error("無法載入問題資料。");
+  localStorage.setItem(staticQuestionsKey, JSON.stringify(await response.json()));
 }
 
 async function loadCurrentUser() {
@@ -189,6 +310,8 @@ questionList.addEventListener("submit", async (event) => {
   }
 });
 
-Promise.all([loadCurrentUser(), loadQuestions()]).catch((error) => {
+Promise.resolve(loadStaticSeed())
+  .then(() => Promise.all([loadCurrentUser(), loadQuestions()]))
+  .catch((error) => {
   resultCount.textContent = error.message;
-});
+  });
